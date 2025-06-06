@@ -1,8 +1,8 @@
 ![readme_assets/image.png](readme_assets/image.png)
 
-# <center> Surf - Công cụ quản lý công việc dành cho nhóm phát triển nhỏ và vừa </center>
+# <p align="center"> Surf - Công cụ quản lý công việc dành cho nhóm phát triển nhỏ và vừa </p>
 
-<center>
+<p align="center">
 
 ![NextJS](https://img.shields.io/badge/NextJS-black?style=flat)
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-blue?style=flat)
@@ -11,7 +11,7 @@
 
 Surf là nền tảng quản lý công việc phát triển sản phẩm phần mềm toàn diện dành cho các đội nhóm nhỏ và vừa. Thấu hiểu mong muốn xây dựng nhanh để nhanh chóng mang sản phẩm đến với người dùng, Surf linh hoạt đáp ứng nhu cầu và hỗ trợ đội nhóm nắm bắt tiến độ của dự án một cách đơn giản, tiện lợi.
 
-</center>
+</p>
 
 ## Tính năng chính
 
