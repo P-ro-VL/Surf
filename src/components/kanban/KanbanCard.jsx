@@ -157,47 +157,25 @@ export function KanbanCard({ task, isDraggable = false }) {
               </div>
               <p className="text-2xl font-bold mt-4">{task.content}</p>
               <div className="flex items-center gap-2">
-                <Tooltip>
-                  <TooltipTrigger>
+                <Button
+                  variant="outline"
+                  className={"cursor-pointer"}
+                  disabled={hasReleased}
+                >
+                  <Pencil className="w-4 h-4" />
+                  <p className="text-sm font-medium">Chỉnh sửa</p>
+                </Button>
+
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
                       className={"cursor-pointer"}
                       disabled={hasReleased}
                     >
-                      <Pencil className="w-4 h-4" />
-                      <p className="text-sm font-medium">Chỉnh sửa</p>
+                      <Plus className="w-4 h-4" />
+                      <p className="text-sm font-medium">Thêm</p>
                     </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    {hasReleased && (
-                      <p className="text-sm font-medium">
-                        Ticket đã Golive không thể chỉnh sửa
-                      </p>
-                    )}
-                  </TooltipContent>
-                </Tooltip>
-
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Tooltip>
-                      <TooltipTrigger>
-                        <Button
-                          variant="outline"
-                          className={"cursor-pointer"}
-                          disabled={hasReleased}
-                        >
-                          <Plus className="w-4 h-4" />
-                          <p className="text-sm font-medium">Thêm</p>
-                        </Button>
-                      </TooltipTrigger>
-                      {hasReleased && (
-                        <TooltipContent>
-                          <p className="text-sm font-medium">
-                            Ticket đã Golive không thể chỉnh sửa
-                          </p>
-                        </TooltipContent>
-                      )}
-                    </Tooltip>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent>
                     <DropdownMenuItem>
@@ -314,7 +292,7 @@ export function KanbanCard({ task, isDraggable = false }) {
 
             {/* Release Status */}
             {task.fixVersions?.status == "RELEASED" && (
-              <div className="mt-4 mb-2 w-full border-1 border-green-500 bg-green-50 rounded-sm px-4 py-2 flex items-center gap-2 text-green-700">
+              <div className="mt-4 w-full border-1 border-green-500 bg-green-50 rounded-sm px-4 py-2 flex items-center gap-2 text-green-700">
                 <PackageCheck className="w-4 h-4 " />
                 <p className="text-md font-bold">
                   Ticket này đã Golive ngày {task.fixVersions?.releaseDate}
@@ -323,7 +301,7 @@ export function KanbanCard({ task, isDraggable = false }) {
             )}
 
             {/* Epic */}
-            <div className="mb-4 w-full border-1 border-purple-500 bg-purple-50 rounded-sm px-4 py-2 flex items-center gap-2 text-purple-700">
+            <div className="mb-4 mt-2 w-full border-1 border-purple-500 bg-purple-50 rounded-sm px-4 py-2 flex items-center gap-2 text-purple-700">
               <Zap className="w-4 h-4 " />
               <p className="text-md font-bold">High Priority</p>
             </div>

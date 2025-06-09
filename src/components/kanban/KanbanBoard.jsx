@@ -36,7 +36,7 @@ const initialTasksData = {
     fixVersions: {
       name: "1.0.0",
       releaseDate: "2025-06-01",
-      status: "RELEASED",
+      status: "UNRELEASED",
     },
     links: {
       design: "https://www.figma.com/design/1234567890/Design-Name",
