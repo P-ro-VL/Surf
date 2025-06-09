@@ -1,12 +1,14 @@
 "use client";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { authService } from "@/services/auth";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function StackedAvatars({ avatars, size = 40, className }) {
   const [selectedAvatar, setSelectedAvatar] = useState(null);
+  const [members, setMembers] = useState(null);
 
   const handleAvatarClick = (idx, e) => {
     e.preventDefault();

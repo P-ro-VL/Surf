@@ -17,11 +17,11 @@ export function KanbanColumn({ title, tasks, columnId, description }) {
     id: columnId,
     data: {
       type: "Column",
-      column: { id: columnId, title, taskIds: tasks.map((t) => t.id) }, // Truyền dữ liệu cột
+      column: { id: columnId, title, taskIds: tasks.map((t) => t.uuid) }, // Truyền dữ liệu cột
     },
   });
 
-  const taskIds = tasks.map((task) => task.id);
+  const taskIds = tasks.map((task) => task.uuid);
 
   return (
     <div
@@ -48,7 +48,7 @@ export function KanbanColumn({ title, tasks, columnId, description }) {
           >
             {tasks.map((task) => (
               <KanbanCard
-                key={task.id}
+                key={task.uuid}
                 task={task}
                 isDraggable={true} // Tất cả các card đều có thể kéo
               />

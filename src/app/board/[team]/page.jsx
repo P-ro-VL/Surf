@@ -1,3 +1,4 @@
+import { AuthGuard } from "@/components/auth-guard";
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
 import StackedAvatars from "@/components/ui/stacked_avatar";
 
@@ -15,11 +16,13 @@ const avatars = [
 
 export default async function Page({ params }) {
   const { team } = await params;
+
   return (
-    <div className="p-4 flex flex-col gap-3">
-      <h1 className="text-2xl font-bold capitalize">{team} Kanban Board</h1>
-      <StackedAvatars avatars={avatars} maxVisible={3} className={"h-10"} />
-      <KanbanBoard />
-    </div>
+    <AuthGuard>
+      <div className="p-4 flex flex-col gap-3">
+        <h1 className="text-2xl font-bold capitalize">{team} Kanban Board</h1>
+        <KanbanBoard teamName={team} />
+      </div>
+    </AuthGuard>
   );
 }

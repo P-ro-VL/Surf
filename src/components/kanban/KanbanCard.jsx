@@ -6,13 +6,11 @@ import { CSS } from "@dnd-kit/utilities";
 import {
   Calendar,
   CalendarIcon,
-  Edit,
   Figma,
   FileCode2,
   FilePlus2,
   FileText,
   Fingerprint,
-  Link,
   Trash,
   Package,
   PackageCheck,
@@ -20,11 +18,11 @@ import {
   Pencil,
   Plus,
   Tag,
-  TruckElectric,
   UserRound,
   Wrench,
   Zap,
   CopyPlus,
+  X,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import {
@@ -35,11 +33,8 @@ import {
 } from "@/components/ui/dialog";
 import { useState } from "react";
 import { Button } from "../ui/button";
-import Tiptap from "../tiptap";
 import { SimpleEditor } from "../tiptap-templates/simple/simple-editor";
 import { Badge } from "../ui/badge";
-import { Input } from "../ui/input";
-import DatePicker from "../ui/datepicker";
 import {
   Select,
   SelectContent,
@@ -49,12 +44,6 @@ import {
 } from "../ui/select";
 import { initialColumnsData } from "./KanbanBoard";
 import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "../ui/context-menu";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -63,6 +52,8 @@ import {
 } from "../ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import { Separator } from "../ui/separator";
+import { textToColor } from "@/utils/color_utils";
+import EditTicketDialog from "./edit-ticket-dialog";
 
 export function KanbanCard({ task, isDraggable = false }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -74,13 +65,27 @@ export function KanbanCard({ task, isDraggable = false }) {
     transition,
     isDragging,
   } = useSortable({
-    id: task.id,
+    id: task.uuid,
     data: {
       type: "Task",
       task,
     },
     disabled: !isDraggable, // Vô hiệu hóa kéo thả nếu isDraggable là false
   });
+
+  const changedInformation = {
+    status: task.status,
+    assignee: task.assignee?.id,
+    dueDate: task.dueDate,
+    storyPoints: task.storyPoints,
+    labels: task.labels,
+    fixVersions: task.fixVersions?.id,
+    ticketName: task.ticketName,
+    description: task.description,
+    links: task.links,
+    comments: task.comments,
+    parent: task.parent?.id,
+  };
 
   const hasReleased = task.fixVersions?.status == "RELEASED";
 
@@ -100,7 +105,7 @@ export function KanbanCard({ task, isDraggable = false }) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={isOpen}>
       <div
         ref={setNodeRef}
         style={style}
@@ -118,53 +123,74 @@ export function KanbanCard({ task, isDraggable = false }) {
           } ${task.overdue ? "ring-red-500 ring-3 bg-red-50" : ""}`}
         >
           <CardContent className="gap-5 flex flex-col">
-            <div className="border-purple-500 flex items-center gap-2 text-purple-700 ">
-              <Zap className="w-4 h-4" />
-              <p className="text-sm font-medium">High Priority</p>
-            </div>
-            <p className="text-md font-semibold">{task.content}</p>
+            {task.parent && (
+              <div className="border-purple-500 flex items-center gap-2 text-purple-700 ">
+                <Zap className="w-4 h-4" />
+                <p className="text-sm font-medium">{task.parent.ticketName}</p>
+              </div>
+            )}
+
+            <p className="text-md font-semibold">{task.ticketName}</p>
             <div className="flex justify-between">
               <div className="gap-2">
                 <p className="text-sm text-gray-500 flex items-center gap-2">
                   <span className="text-gray-500">
                     <Fingerprint className="w-4 h-4" />
                   </span>
-                  <span className="text-gray-500">{task.id.toUpperCase()}</span>
+                  <span className="text-gray-500">
+                    {task.ticketId.toUpperCase()}
+                  </span>
                 </p>
                 <p className="flex items-center gap-2 text-sm text-gray-500">
                   <span className="text-gray-500">
                     <CalendarIcon className="w-4 h-4" />
                   </span>
-                  <span className="text-gray-500">10/06/2025</span>
+                  <span className="text-gray-500">{task.dueDate}</span>
                 </p>
               </div>
 
               <Avatar>
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>CN</AvatarFallback>
+                <AvatarFallback
+                  className={`font-bold text-white`}
+                  style={{
+                    backgroundColor: `#${textToColor(task.assignee?.name)}`,
+                  }}
+                >
+                  {task.assignee?.name.charAt(0).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
             </div>
           </CardContent>
         </Card>
       </div>
-      <DialogContent className="sm:max-w-[50vw] p-8">
+      <DialogContent className="sm:max-w-[50vw] p-8 [&>button]:hidden">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
             <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <Fingerprint className="w-4 h-4 text-blue-500" />
-                <p className="text-sm font-medium">{task.id.toUpperCase()}</p>
+              <div className="flex justify-between">
+                <div className="flex items-center gap-2">
+                  <Fingerprint className="w-4 h-4 text-blue-500" />
+                  <p className="text-sm font-medium">
+                    {task.ticketId.toUpperCase()}
+                  </p>
+                </div>
+                <X
+                  className="w-5 h-5 text-gray-500 cursor-pointer"
+                  onClick={() => setIsOpen(false)}
+                />
               </div>
-              <p className="text-2xl font-bold mt-4">{task.content}</p>
+              <p className="text-2xl font-bold mt-4">{task.ticketName}</p>
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  className={"cursor-pointer"}
-                  disabled={hasReleased}
-                >
-                  <Pencil className="w-4 h-4" />
-                  <p className="text-sm font-medium">Chỉnh sửa</p>
-                </Button>
+                <EditTicketDialog ticket={task}>
+                  <Button
+                    variant="outline"
+                    className={"cursor-pointer"}
+                    disabled={hasReleased}
+                  >
+                    <Pencil className="w-4 h-4" />
+                    <p className="text-sm font-medium">Chỉnh sửa</p>
+                  </Button>
+                </EditTicketDialog>
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -208,24 +234,32 @@ export function KanbanCard({ task, isDraggable = false }) {
           <div className="w-2/3">
             <p className="font-bold text-md mb-2">Mô tả</p>
             <div className="w-full h-[350px] border-1 rounded-md mb-4">
-              <SimpleEditor disabled={hasReleased} />
+              <SimpleEditor disabled={hasReleased} content={task.description} />
             </div>
 
-            {task.links && (
+            {task.links && task.links.length > 0 && (
               <div className="w-full">
                 <p className="font-bold text-md mb-2">Đường dẫn</p>
                 <div className="w-full">
-                  {Object.entries(task.links).map((entry) => (
+                  {task.links.map((entry) => (
                     <div
-                      key={entry[0]}
+                      key={entry}
                       className="flex items-center gap-2 px-4 py-2 border-1 rounded-sm mt-2 cursor-pointer hover:bg-blue-100 hover:border-blue-500"
                     >
-                      {entry[0] == "design" && <Figma className="w-4 h-4" />}
-                      {entry[0] == "prd" && <FileText className="w-4 h-4" />}
-                      {entry[0] == "apiDoc" && (
+                      {entry.contains("figma.com") && (
+                        <Figma className="w-4 h-4" />
+                      )}
+                      {(entry.contains("docs") ||
+                        entry.contains("confluence")) && (
+                        <FileText className="w-4 h-4" />
+                      )}
+                      {(entry.contains("api") ||
+                        entry.contains("swagger") ||
+                        entry.contains("github") ||
+                        entry.contains("postman")) && (
                         <FileCode2 className="w-4 h-4" />
                       )}
-                      <p className="text-sm font-medium">{entry[1]}</p>
+                      <p className="text-sm font-medium">{entry}</p>
                     </div>
                   ))}
                 </div>
@@ -272,18 +306,28 @@ export function KanbanCard({ task, isDraggable = false }) {
           </div>
           <div className="w-1/3">
             {/* Status */}
-            <Select>
+            <Select defaultValue={task.status.replaceAll(" ", "_")}>
               <SelectTrigger
-                className={`font-bold ${task.backgroundColor} ${task.textColor} ${task.borderColor} border-1 rounded-sm`}
+                className={`font-bold ${task.backgroundColor} ${
+                  ["BACKLOG", "TODO"].includes(task.status)
+                    ? "bg-gray-50 text-gray-700 border-gray-700"
+                    : [
+                        "IN_PROGRESS",
+                        "READY_FOR_TESTING",
+                        "IN_TESTING",
+                      ].includes(task.status)
+                    ? "bg-blue-50 text-blue-700 border-blue-700"
+                    : "bg-green-50 text-green-700 border-green-700"
+                } ${task.borderColor} border-1 rounded-sm`}
               >
-                <SelectValue
-                  placeholder="Select a status"
-                  value={task.status}
-                />
+                <SelectValue placeholder="Trạng thái" />
               </SelectTrigger>
               <SelectContent>
                 {Object.values(initialColumnsData).map((column) => (
-                  <SelectItem key={column.title} value={column.title}>
+                  <SelectItem
+                    key={column.title.replaceAll(" ", "_")}
+                    value={column.title.replaceAll(" ", "_")}
+                  >
                     {column.title}
                   </SelectItem>
                 ))}
@@ -301,13 +345,15 @@ export function KanbanCard({ task, isDraggable = false }) {
             )}
 
             {/* Epic */}
-            <div className="mb-4 mt-2 w-full border-1 border-purple-500 bg-purple-50 rounded-sm px-4 py-2 flex items-center gap-2 text-purple-700">
-              <Zap className="w-4 h-4 " />
-              <p className="text-md font-bold">High Priority</p>
-            </div>
+            {task.parent != null && (
+              <div className="mt-2 w-full border-1 border-purple-500 bg-purple-50 rounded-sm px-4 py-2 flex items-center gap-2 text-purple-700">
+                <Zap className="w-4 h-4 " />
+                <p className="text-md font-bold">High Priority</p>
+              </div>
+            )}
 
             {/* Fields */}
-            <div className="w-full border-1 rounded-sm p-4 flex flex-col gap-2">
+            <div className="w-full border-1 rounded-sm p-4 flex flex-col gap-2 mt-4">
               <p className="text-md font-bold ">Thông tin</p>
               <Separator className={"mb-4"} />
               {/* Assignee */}
@@ -318,12 +364,16 @@ export function KanbanCard({ task, isDraggable = false }) {
                 </div>
                 <div className="flex items-center gap-2">
                   <Avatar>
-                    <AvatarImage src="https://github.com/shadcn.png" />
-                    <AvatarFallback>
-                      {task.assignee?.charAt(0).toUpperCase()}
+                    <AvatarFallback
+                      className={`font-bold text-white`}
+                      style={{
+                        backgroundColor: `#${textToColor(task.assignee?.name)}`,
+                      }}
+                    >
+                      {task.assignee?.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <p className="text-md">{task.assignee}</p>
+                  <p className="text-md">{task.assignee?.name}</p>
                 </div>
               </div>
               {/* Labels */}
@@ -332,7 +382,7 @@ export function KanbanCard({ task, isDraggable = false }) {
                   <Tag className="w-4 h-4" />
                   <p className="text-sm font-semibold">Labels</p>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1 flex-wrap justify-end">
                   {task.labels?.map((label) => (
                     <Badge className="text-sm font-medium">{label}</Badge>
                   ))}
@@ -347,7 +397,7 @@ export function KanbanCard({ task, isDraggable = false }) {
                 <div className="flex items-center gap-1">
                   <Tooltip>
                     <TooltipTrigger>
-                      <p className="text-sm font-medium">{task.duedate}</p>
+                      <p className="text-sm font-medium">{task.dueDate}</p>
                     </TooltipTrigger>
                     <TooltipContent>
                       <p className="text-sm font-medium">
@@ -385,21 +435,23 @@ export function KanbanCard({ task, isDraggable = false }) {
                 <Tooltip>
                   <TooltipTrigger>
                     <p className="text-sm font-medium">
-                      {task.fixVersions?.name}
+                      {task.fixVersions?.versionName ?? "--"}
                     </p>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-sm font-medium">
-                      Dự kiến Golive ngày {task.fixVersions?.releaseDate}
-                    </p>
-                  </TooltipContent>
+                  {task.fixVersions?.versionName && (
+                    <TooltipContent>
+                      <p className="text-sm font-medium">
+                        Dự kiến Golive ngày {task.fixVersions?.releaseDate}
+                      </p>
+                    </TooltipContent>
+                  )}
                 </Tooltip>
               </div>
             </div>
 
             <p className="text-sm text-gray-500 mt-4 px-4">
               <span>
-                Ticket được tạo ngày {task.createdAt} bởi {task.createdBy}
+                Ticket được tạo ngày {task.createdAt} bởi {task.createdBy.name}
               </span>
               <br />
               <span>Cập nhật lần cuối lúc {task.updatedAt}</span>

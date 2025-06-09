@@ -11,58 +11,20 @@ import {
   useSensor,
   useSensors,
   closestCorners,
-  rectIntersection,
 } from "@dnd-kit/core";
 import {
   SortableContext,
   arrayMove,
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
-
-const initialTasksData = {
-  "task-1": {
-    id: "task-1",
-    content: "Lên kế hoạch cho buổi họp team sắp tới",
-    overdue: false,
-    duedate: "10/06/2025",
-    labels: ["Vốn Hoá", "Test"],
-    description: "Lên kế hoạch cho buổi họp team sắp tới",
-    assignee: "Alice",
-    storyPoints: 3,
-    status: "In Progress",
-    createdAt: "2025-06-01",
-    updatedAt: "2025-06-01",
-    createdBy: "Alice",
-    fixVersions: {
-      name: "1.0.0",
-      releaseDate: "2025-06-01",
-      status: "UNRELEASED",
-    },
-    links: {
-      design: "https://www.figma.com/design/1234567890/Design-Name",
-      prd: "https://www.figma.com/design/1234567890/Design-Name",
-      apiDoc: "https://www.figma.com/design/1234567890/Design-Name",
-    },
-    comments: [
-      {
-        id: "comment-1",
-        content: "Comment 1",
-        createdAt: "23:52:19 2025-06-01",
-        createdBy: "Alice",
-      },
-    ],
-  },
-  "task-2": { id: "task-2", content: "Review PR #123 của đồng nghiệp" },
-  "task-3": { id: "task-3", content: "Nghiên cứu thư viện X cho dự án Y" },
-  "task-4": { id: "task-4", content: "Viết tài liệu cho API Z" },
-};
+import { teamService } from "@/services/team";
+import { ticketService } from "@/services/ticket";
 
 export const initialColumnsData = {
   "column-1": {
     id: "column-1",
     title: "BACKLOG",
     description: "Các task chưa được lên lịch",
-    taskIds: ["task-1", "task-2", "task-3", "task-4"],
     backgroundColor: "bg-gray-50",
     textColor: "text-gray-700",
     borderColor: "border-gray-500",
@@ -71,7 +33,6 @@ export const initialColumnsData = {
     id: "column-2",
     title: "TODO",
     description: "Các task đang chờ thực hiện",
-    taskIds: [],
     backgroundColor: "bg-gray-50",
     textColor: "text-gray-700",
     borderColor: "border-gray-500",
@@ -80,7 +41,6 @@ export const initialColumnsData = {
     id: "column-3",
     title: "IN PROGRESS",
     description: "Các task đang được thực hiện",
-    taskIds: [],
     backgroundColor: "bg-blue-50",
     textColor: "text-blue-700",
     borderColor: "border-blue-500",
@@ -89,7 +49,6 @@ export const initialColumnsData = {
     id: "column-4",
     title: "READY FOR TESTING",
     description: "Các task đã hoàn thành và sẵn sàng để test",
-    taskIds: [],
     backgroundColor: "bg-blue-50",
     textColor: "text-blue-700",
     borderColor: "border-blue-500",
@@ -98,7 +57,6 @@ export const initialColumnsData = {
     id: "column-5",
     title: "IN TESTING",
     description: "Các task đang được test",
-    taskIds: [],
     backgroundColor: "bg-blue-50",
     textColor: "text-blue-700",
     borderColor: "border-blue-500",
@@ -107,7 +65,6 @@ export const initialColumnsData = {
     id: "column-6",
     title: "DONE",
     description: "Các task đã hoàn thành",
-    taskIds: [],
     backgroundColor: "bg-green-50",
     textColor: "text-green-700",
     borderColor: "border-green-500",
@@ -123,18 +80,26 @@ const initialColumnOrderData = [
   "column-6",
 ];
 
-export function KanbanBoard() {
-  const [tasks, setTasks] = useState({});
+export function KanbanBoard({ teamName }) {
   const [columns, setColumns] = useState({});
   const [columnOrder, setColumnOrder] = useState([]);
   const [isClient, setIsClient] = useState(false);
   const [activeId, setActiveId] = useState(null);
   const [activeItemData, setActiveItemData] = useState(null);
+  const [tickets, setTickets] = useState([]);
 
   useEffect(() => {
-    // Đảm bảo rằng state chỉ được khởi tạo ở client-side
-    // để tránh hydration mismatch, đặc biệt quan trọng khi dùng DND.
-    setTasks(initialTasksData);
+    const fetchTickets = async () => {
+      const teamId = teamService
+        .getTeamData()
+        .find((team) => team.teamName === teamName).id;
+      await ticketService.getAllTickets(teamId);
+      setTickets(ticketService.getTicketData());
+    };
+    fetchTickets();
+  }, [teamName]);
+
+  useEffect(() => {
     setColumns(initialColumnsData);
     setColumnOrder(initialColumnOrderData);
     setIsClient(true);
@@ -146,8 +111,11 @@ export function KanbanBoard() {
   );
 
   const findColumnContainingTask = (taskId) => {
-    if (!taskId) return null;
-    return Object.values(columns).find((col) => col.taskIds.includes(taskId));
+    const task = tickets.find((ticket) => ticket.uuid === taskId);
+    if (!task) return null;
+    return Object.values(columns).find(
+      (col) => task.status === col.title.toUpperCase().replaceAll(" ", "_")
+    );
   };
 
   const handleDragStart = (event) => {
@@ -156,7 +124,7 @@ export function KanbanBoard() {
     if (active.data.current?.type === "Task") {
       setActiveItemData({ type: "Task", task: active.data.current.task });
     } else {
-      setActiveItemData(null); // Nếu không phải task thì không set active item
+      setActiveItemData(null);
     }
   };
 
@@ -173,96 +141,30 @@ export function KanbanBoard() {
 
     const activeTaskId = active.id;
     const sourceColumn = findColumnContainingTask(activeTaskId);
-
     const overId = over.id;
     const overData = over.data.current;
     const overIsColumn = overData?.type === "Column";
     const overIsTask = overData?.type === "Task";
-
     if (!sourceColumn) return;
 
-    // Kéo Task qua một Column (vùng droppable của column)
+    const activeTask = tickets.find((ticket) => ticket.uuid === activeTaskId);
+    if (!activeTask) return;
+
     if (overIsColumn) {
-      const destinationColumn = columns[overId]; // overId là columnId
+      const destinationColumn = columns[overId];
       if (destinationColumn && sourceColumn.id !== destinationColumn.id) {
-        setColumns((prev) => {
-          const sourceTaskIds = prev[sourceColumn.id].taskIds.filter(
-            (id) => id !== activeTaskId
-          );
-          // Kiểm tra task đã tồn tại trong cột đích chưa để tránh trùng lặp khi drag qua lại nhanh
-          const destinationTaskIds = prev[
-            destinationColumn.id
-          ].taskIds.includes(activeTaskId)
-            ? prev[destinationColumn.id].taskIds
-            : [...prev[destinationColumn.id].taskIds, activeTaskId];
-          return {
-            ...prev,
-            [sourceColumn.id]: {
-              ...prev[sourceColumn.id],
-              taskIds: sourceTaskIds,
-            },
-            [destinationColumn.id]: {
-              ...prev[destinationColumn.id],
-              taskIds: destinationTaskIds,
-            },
-          };
-        });
+        activeTask.status = destinationColumn.title
+          .toUpperCase()
+          .replaceAll(" ", "_");
+        setTickets([...tickets]);
       }
-    }
-    // Kéo Task qua một Task khác
-    else if (overIsTask) {
-      const destinationColumn = findColumnContainingTask(overId); // overId là taskId
+    } else if (overIsTask) {
+      const destinationColumn = findColumnContainingTask(overId);
       if (destinationColumn && sourceColumn.id !== destinationColumn.id) {
-        // Di chuyển Task sang cột khác, vào vị trí của Task 'over'
-        setColumns((prev) => {
-          const sourceTaskIds = prev[sourceColumn.id].taskIds.filter(
-            (id) => id !== activeTaskId
-          );
-          let destinationTaskIds = [...prev[destinationColumn.id].taskIds];
-          const overTaskIndex = destinationTaskIds.indexOf(overId);
-
-          // Loại bỏ activeTaskId nếu nó đã tồn tại trong destinationTaskIds (do dragOver nhanh)
-          destinationTaskIds = destinationTaskIds.filter(
-            (id) => id !== activeTaskId
-          );
-
-          if (overTaskIndex !== -1) {
-            destinationTaskIds.splice(overTaskIndex, 0, activeTaskId);
-          } else {
-            destinationTaskIds.push(activeTaskId); // Fallback
-          }
-          return {
-            ...prev,
-            [sourceColumn.id]: {
-              ...prev[sourceColumn.id],
-              taskIds: sourceTaskIds,
-            },
-            [destinationColumn.id]: {
-              ...prev[destinationColumn.id],
-              taskIds: destinationTaskIds,
-            },
-          };
-        });
-      } else if (
-        destinationColumn &&
-        sourceColumn.id === destinationColumn.id
-      ) {
-        // Sắp xếp Task trong cùng một Column
-        if (activeTaskId !== overId) {
-          setColumns((prev) => {
-            const taskIds = prev[sourceColumn.id].taskIds;
-            const oldIndex = taskIds.indexOf(activeTaskId);
-            const newIndex = taskIds.indexOf(overId);
-            if (oldIndex === -1 || newIndex === -1) return prev;
-            return {
-              ...prev,
-              [sourceColumn.id]: {
-                ...prev[sourceColumn.id],
-                taskIds: arrayMove(taskIds, oldIndex, newIndex),
-              },
-            };
-          });
-        }
+        activeTask.status = destinationColumn.title
+          .toUpperCase()
+          .replaceAll(" ", "_");
+        setTickets([...tickets]);
       }
     }
   };
@@ -271,117 +173,92 @@ export function KanbanBoard() {
     const { active, over } = event;
     setActiveId(null);
     setActiveItemData(null);
-
     if (!over || !activeItemData || activeItemData.type !== "Task") return;
-
     const activeTaskId = active.id;
-    const sourceColumn = findColumnContainingTask(activeTaskId);
-
     const overId = over.id;
     const overData = over.data.current;
     const overIsColumn = overData?.type === "Column";
     const overIsTask = overData?.type === "Task";
 
-    if (!sourceColumn) return;
+    if (overIsTask) {
+      const sourceColumn = findColumnContainingTask(activeTaskId);
+      const destinationColumn = findColumnContainingTask(overId);
+      if (!sourceColumn || !destinationColumn) return;
+      const sourceTasks = tickets.filter(
+        (t) =>
+          t.status === sourceColumn.title.toUpperCase().replaceAll(" ", "_")
+      );
+      const destinationTasks = tickets.filter(
+        (t) =>
+          t.status ===
+          destinationColumn.title.toUpperCase().replaceAll(" ", "_")
+      );
+      const activeIndex = sourceTasks.findIndex((t) => t.uuid === activeTaskId);
+      const overIndex = destinationTasks.findIndex((t) => t.uuid === overId);
 
-    // TH1: Thả Task vào một Column (vùng droppable của column)
-    if (overIsColumn) {
-      const destinationColumn = columns[overId]; // overId là columnId
-      if (destinationColumn && sourceColumn.id !== destinationColumn.id) {
-        // Logic này đã được xử lý bởi onDragOver, onDragEnd chỉ là finalize
-        // Đảm bảo task đã được chuyển đúng
-        setColumns((prev) => {
-          const sourceTaskIds = prev[sourceColumn.id].taskIds.filter(
-            (id) => id !== activeTaskId
-          );
-          let destinationTaskIds = prev[destinationColumn.id].taskIds;
-          if (!destinationTaskIds.includes(activeTaskId)) {
-            destinationTaskIds = [...destinationTaskIds, activeTaskId];
-          }
-          return {
-            ...prev,
-            [sourceColumn.id]: {
-              ...prev[sourceColumn.id],
-              taskIds: sourceTaskIds,
-            },
-            [destinationColumn.id]: {
-              ...prev[destinationColumn.id],
-              taskIds: destinationTaskIds,
-            },
-          };
+      if (sourceColumn.id === destinationColumn.id) {
+        const updated = arrayMove(sourceTasks, activeIndex, overIndex);
+        updated.forEach((t) => {
+          const idx = tickets.findIndex((ticket) => ticket.uuid === t.uuid);
+          if (idx !== -1) tickets[idx] = t;
         });
-      }
-      // Nếu thả vào cùng cột thì không làm gì vì onDragOver đã xử lý sắp xếp nội bộ
-    }
-    // TH2: Thả Task lên một Task khác
-    else if (overIsTask) {
-      const destinationColumn = findColumnContainingTask(overId); // overId là taskId
-      if (destinationColumn) {
-        if (sourceColumn.id === destinationColumn.id) {
-          // Sắp xếp Task trong cùng một Column (final)
-          if (activeTaskId !== overId) {
-            setColumns((prev) => {
-              const taskIds = prev[sourceColumn.id].taskIds;
-              const oldIndex = taskIds.indexOf(activeTaskId);
-              const newIndex = taskIds.indexOf(overId);
-              if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex)
-                return prev;
-              const newTaskIds = arrayMove(taskIds, oldIndex, newIndex);
-              return {
-                ...prev,
-                [sourceColumn.id]: {
-                  ...prev[sourceColumn.id],
-                  taskIds: newTaskIds,
-                },
-              };
-            });
-          }
-        } else {
-          // Di chuyển Task sang Column khác, vào vị trí của Task 'over' (final)
-          setColumns((prev) => {
-            const sourceTaskIds = prev[sourceColumn.id].taskIds.filter(
-              (id) => id !== activeTaskId
-            );
-            let destinationTaskIds = [...prev[destinationColumn.id].taskIds];
-            // Loại bỏ activeTaskId nếu nó đã tồn tại trong destinationTaskIds (do dragOver nhanh)
-            destinationTaskIds = destinationTaskIds.filter(
-              (id) => id !== activeTaskId
-            );
-            const overTaskIndex = destinationTaskIds.indexOf(overId);
+        setTickets([...tickets]);
 
-            if (overTaskIndex !== -1) {
-              destinationTaskIds.splice(overTaskIndex, 0, activeTaskId);
-            } else {
-              destinationTaskIds.push(activeTaskId); // Fallback nếu overId không tìm thấy, hoặc thả vào cuối
+        ticketService
+          .updateTicket(activeTaskId, {
+            status: destinationColumn.title.toUpperCase().replaceAll(" ", "_"),
+          })
+          .then((data) => {
+            if (data) {
             }
-            return {
-              ...prev,
-              [sourceColumn.id]: {
-                ...prev[sourceColumn.id],
-                taskIds: sourceTaskIds,
-              },
-              [destinationColumn.id]: {
-                ...prev[destinationColumn.id],
-                taskIds: destinationTaskIds,
-              },
-            };
           });
+      } else {
+        const activeTask = tickets.find((t) => t.uuid === activeTaskId);
+        if (activeTask) {
+          activeTask.status = destinationColumn.title
+            .toUpperCase()
+            .replaceAll(" ", "_");
+          setTickets([...tickets]);
+
+          ticketService
+            .updateTicket(activeTask.uuid, {
+              status: destinationColumn.title
+                .toUpperCase()
+                .replaceAll(" ", "_"),
+            })
+            .then((data) => {
+              if (data) {
+              }
+            });
         }
+      }
+    } else if (overIsColumn) {
+      const destinationColumn = columns[overId];
+      const activeTask = tickets.find((t) => t.uuid === activeTaskId);
+      if (destinationColumn && activeTask) {
+        activeTask.status = destinationColumn.title
+          .toUpperCase()
+          .replaceAll(" ", "_");
+        setTickets([...tickets]);
+
+        ticketService
+          .updateTicket(activeTask.uuid, {
+            status: destinationColumn.title.toUpperCase().replaceAll(" ", "_"),
+          })
+          .then((data) => {
+            if (data) {
+            }
+          });
       }
     }
   };
 
-  if (!isClient) {
-    // Render placeholder hoặc null nếu ở server-side để chờ client mount
-    return null;
-  }
-
-  const collisionDetectionStrategy = closestCorners; // Chỉ kéo task nên closestCorners là đủ
+  if (!isClient) return null;
 
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={collisionDetectionStrategy}
+      collisionDetection={closestCorners}
       onDragStart={handleDragStart}
       onDragOver={handleDragOver}
       onDragEnd={handleDragEnd}
@@ -394,9 +271,11 @@ export function KanbanBoard() {
           {columnOrder.map((columnId) => {
             const column = columns[columnId];
             if (!column) return null;
-            const columnTasks = column.taskIds
-              .map((taskId) => tasks[taskId])
-              .filter((task) => task);
+            const columnTasks = tickets.filter(
+              (ticket) =>
+                ticket.status ===
+                column.title.toUpperCase().replaceAll(" ", "_")
+            );
             return (
               <KanbanColumn
                 key={column.id}

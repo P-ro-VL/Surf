@@ -75,8 +75,6 @@ import { handleImageUpload, MAX_FILE_SIZE } from "@/lib/tiptap-utils";
 // --- Styles ---
 import "@/components/tiptap-templates/simple/simple-editor.scss";
 
-import content from "@/components/tiptap-templates/simple/data/content.json";
-
 const MainToolbarContent = ({ onHighlighterClick, onLinkClick, isMobile }) => {
   return (
     <>
@@ -151,7 +149,7 @@ const MobileToolbarContent = ({ type, onBack }) => (
   </>
 );
 
-export function SimpleEditor({ disabled = false }) {
+export function SimpleEditor({ disabled = false, content }) {
   const isMobile = useMobile();
   const windowSize = useWindowSize();
   const [mobileView, setMobileView] = React.useState("main");
