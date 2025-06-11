@@ -31,8 +31,9 @@ import {
 import { Input } from "../ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Button } from "../ui/button";
-import { Check, Tag, Zap } from "lucide-react";
+import { CalendarX2, Check, Tag, Zap } from "lucide-react";
 import { ticketStyles } from "@/utils/constants";
+import { Separator } from "../ui/separator";
 
 export const initialColumnsData = {
   "column-1": {
@@ -93,6 +94,8 @@ export function KanbanBoard({ teamName }) {
     authService.getAuthData().id
   );
 
+  const [selectOverdue, setSelectOverdue] = useState(false);
+
   const [selectedType, setSelectedType] = useState("all");
 
   const [epicKeyword, setEpicKeyword] = useState("");
@@ -114,7 +117,14 @@ export function KanbanBoard({ teamName }) {
       let data = ticketService.getTicketData();
 
       if (selectedMember) {
-        data = data.filter((ticket) => ticket.assignee?.id === selectedMember);
+        const isMemberOfThisTeam = data.find(
+          (ticket) => ticket.assignee?.id === selectedMember
+        );
+
+        if (isMemberOfThisTeam)
+          data = data.filter(
+            (ticket) => ticket.assignee?.id === selectedMember
+          );
       }
 
       if (selectedType && selectedType !== "all") {
@@ -133,10 +143,20 @@ export function KanbanBoard({ teamName }) {
         data = data.filter((ticket) => ticket.labels?.includes(selectedLabel));
       }
 
+      if (selectOverdue) {
+        data = data.filter((ticket) => new Date(ticket.dueDate) < new Date());
+      }
+
       setTickets(data);
     };
     fetchTickets();
-  }, [selectedType, selectedEpic, selectedMember, selectedLabel]);
+  }, [
+    selectOverdue,
+    selectedType,
+    selectedEpic,
+    selectedMember,
+    selectedLabel,
+  ]);
 
   useEffect(() => {
     setColumns(initialColumnsData);
@@ -343,7 +363,23 @@ export function KanbanBoard({ teamName }) {
           }}
         />
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          <p className="text-sm font-semibold mr-4">Lọc nhanh: </p>
+          <Button
+            variant={"outline"}
+            className={`cursor-pointer ${
+              selectOverdue
+                ? "bg-red-50 text-red-500 border-red-500 hover:text-red-500"
+                : ""
+            }`}
+            onClick={() => {
+              setSelectOverdue(!selectOverdue);
+            }}
+          >
+            <CalendarX2 className="w-4 h-4" />
+            Overdue
+          </Button>
+          <Separator orientation="vertical" />
           <Select
             defaultValue={selectedType}
             onValueChange={(value) => {

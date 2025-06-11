@@ -82,8 +82,7 @@ export default function EditTicketDialog({ children, ticket, callback }) {
   }
   // End Functions
 
-  if (teamMembers.length === 0 || fixVersions.length === 0)
-    return <p>Loading...</p>;
+  if (teamMembers.length === 0) return <p>Loading...</p>;
 
   return (
     <div>

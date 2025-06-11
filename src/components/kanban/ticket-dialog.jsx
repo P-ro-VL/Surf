@@ -19,6 +19,7 @@ import {
   CopyPlus,
   X,
   Copy,
+  SquareArrowOutUpRight,
 } from "lucide-react";
 import { Avatar, AvatarFallback } from "../ui/avatar";
 import {
@@ -76,6 +77,7 @@ export function TicketDialog({ children, task, open }) {
   const [relationTicketOpen, setRelationTicketOpen] = useState(false);
 
   const [link, setLink] = useState("");
+  const [linkOpen, setLinkOpen] = useState(false);
 
   const hasReleased = task.fixVersions?.status == "RELEASED";
   const overdue = new Date(task.dueDate) < new Date();
@@ -245,21 +247,25 @@ export function TicketDialog({ children, task, open }) {
                         <div className="flex flex-col gap-2 h-52 overflow-y-auto">
                           {ticketService
                             .getTicketData()
-                            .filter((ticket) =>
-                              ticket.ticketName
-                                .toLowerCase()
-                                .includes(relationTicketKeyword.toLowerCase())
+                            .filter(
+                              (ticket) =>
+                                ticket.ticketName
+                                  .toLowerCase()
+                                  .includes(
+                                    relationTicketKeyword.toLowerCase()
+                                  ) && ticket.type !== "EPIC"
                             )
                             .map((ticket) => (
                               <Button
                                 variant={"outline"}
-                                className="border-none shadow-none text-gray-900 w-full justify-start"
+                                className="border-none shadow-none text-gray-900 w-full justify-start cursor-pointer"
                                 onClick={() => {
                                   setSelectedRelationTicket(ticket);
 
                                   setRelationTicketOpen(false);
                                 }}
                               >
+                                {ticketStyles[ticket.type.toLowerCase()]?.icon}{" "}
                                 {ticket.ticketId} - {ticket.ticketName}
                               </Button>
                             ))}
@@ -276,7 +282,7 @@ export function TicketDialog({ children, task, open }) {
                   </PopoverContent>
                 </Popover>
 
-                <Popover>
+                <Popover open={linkOpen} onOpenChange={setLinkOpen}>
                   <PopoverTrigger>
                     <Button variant="outline" className={"cursor-pointer"}>
                       <Paperclip className="w-4 h-4" />
@@ -296,6 +302,8 @@ export function TicketDialog({ children, task, open }) {
                       className="cursor-pointer"
                       onClick={() => {
                         updateTicketLinks();
+
+                        setLinkOpen(false);
                       }}
                     >
                       Thêm
@@ -337,7 +345,7 @@ export function TicketDialog({ children, task, open }) {
             <div className="flex justify-between mb-2 items-center">
               <p className="font-bold text-md ">Mô tả</p>
               <Button
-                variant="outline"
+                // variant="outline"
                 className="cursor-pointer"
                 onClick={() => {
                   updateTicketDescription();
@@ -368,18 +376,18 @@ export function TicketDialog({ children, task, open }) {
                         window.open(entry, "_blank");
                       }}
                     >
-                      {entry.includes("figma.com") && (
+                      {entry.includes("figma.com") ? (
                         <Figma className="w-4 h-4" />
-                      )}
-                      {(entry.includes("docs") ||
-                        entry.includes("confluence")) && (
+                      ) : entry.includes("docs") ||
+                        entry.includes("confluence") ? (
                         <FileText className="w-4 h-4" />
-                      )}
-                      {(entry.includes("api") ||
+                      ) : entry.includes("api") ||
                         entry.includes("swagger") ||
                         entry.includes("github") ||
-                        entry.includes("postman")) && (
+                        entry.includes("postman") ? (
                         <FileCode2 className="w-4 h-4" />
+                      ) : (
+                        <SquareArrowOutUpRight className="w-4 h-4" />
                       )}
                       <p className="text-sm font-medium">{entry}</p>
                     </div>

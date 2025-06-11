@@ -24,6 +24,10 @@ import { ticketService } from "@/services/ticket";
 import { Button } from "../ui/button";
 import { ticketStyles } from "@/utils/constants";
 
+const bugTemplate = `
+<p><strong>[DÀNH CHO QC]</strong></p><ol><li><p><strong>Các bước tái hiện</strong></p></li><li><p><strong>Data sử dụng</strong></p></li></ol><ul><li><p>Tài khoản: </p></li><li><p>Mật khẩu</p></li></ul><ol start="3"><li><p><strong>Hiện tại</strong></p></li><li><p><strong>Mong muốn</strong></p></li></ol><hr><p><strong>[DÀNH CHO DEV]</strong></p><ol><li><p>Nguyên nhân (<em>Cause</em>): Nguyên nhân trực tiếp của vấn đề</p></li><li><p>Nguyên nhân gốc rễ (<em>Rootcause</em>): Nguyên nhân sâu xa của vấn đề (do nhận code từ người khác/Do chưa đọc kỹ tài liệu/Do chưa đánh giá được impact/…)</p></li><li><p>Các màn hình/chức năng bị ảnh hưởng:</p></li><li><p>Cách giải quyết:</p></li></ol><p></p>
+`;
+
 export default function CreateTicketDialog({
   children,
   teamName,
@@ -73,6 +77,7 @@ export default function CreateTicketDialog({
       type: ticketType.toUpperCase(),
       parentId: isSubtask ? parentId : epic ? epic.uuid : null,
       teamId: teamId,
+      description: ticketType === "bug" ? bugTemplate : "",
     };
 
     await ticketService.createTicket(payload);

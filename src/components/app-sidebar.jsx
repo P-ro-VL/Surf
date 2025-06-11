@@ -50,14 +50,14 @@ export function AppSidebar({ ...props }) {
               title: "Kanban",
               url: `/board/${team.teamName}`,
             },
-            {
-              title: "Lịch họp",
-              url: `/board/${team.teamName}/schedule`,
-            },
-            {
-              title: "Golive",
-              url: `/board/${team.teamName}/release`,
-            },
+            // {
+            //   title: "Lịch họp",
+            //   url: `/board/${team.teamName}/schedule`,
+            // },
+            // {
+            //   title: "Golive",
+            //   url: `/board/${team.teamName}/release`,
+            // },
           ],
         })),
       ],
