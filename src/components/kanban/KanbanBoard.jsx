@@ -330,7 +330,7 @@ export function KanbanBoard({ teamName }) {
 
   return (
     <>
-      <div className="w-full flex gap-20">
+      <div className="w-full flex justify-between gap-20">
         <StackedAvatars
           avatars={members.map((member) => ({
             id: member.id,

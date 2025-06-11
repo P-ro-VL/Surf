@@ -2,6 +2,7 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { authService } from "@/services/auth";
+import { textToColor } from "@/utils/color_utils";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -28,7 +29,7 @@ export default function StackedAvatars({
   return (
     <div className={`flex items-center relative ${className}`}>
       {avatars.map((avatar, idx) => (
-        <Tooltip.Provider key={idx}>
+        <Tooltip.Provider key={idx} delayDuration={0}>
           <Tooltip.Root>
             <Tooltip.Trigger asChild>
               <Link
@@ -40,15 +41,25 @@ export default function StackedAvatars({
                 }`}
                 style={{
                   left: idx * size * 0.75, // Adjust overlap
-                  zIndex: avatars.length - idx,
+                  zIndex: selectedAvatar == idx ? 1000 : avatars.length - idx,
+                  backgroundColor: `#${textToColor(avatar.name)}`,
                 }}
                 onClick={(e) => handleAvatarClick(idx, e)}
               >
                 <Avatar
-                  style={{ width: `${size}px`, height: `${size}px` }}
+                  style={{
+                    width: `${size}px`,
+                    height: `${size}px`,
+                    backgroundColor: `#${textToColor(avatar.name)}`,
+                  }}
                   className="rounded-full border-2 border-white overflow-hidden"
                 >
-                  <AvatarFallback className="bg-blue-500 text-white font-bold">
+                  <AvatarFallback
+                    className="text-white font-bold"
+                    style={{
+                      backgroundColor: `#${textToColor(avatar.name)}`,
+                    }}
+                  >
                     {avatar.name?.[0]?.toUpperCase() || "?"}
                   </AvatarFallback>
                 </Avatar>

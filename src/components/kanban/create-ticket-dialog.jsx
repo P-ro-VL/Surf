@@ -80,7 +80,7 @@ export default function CreateTicketDialog({
     window.location.reload();
   };
 
-  if (teamMembers.length === 0 || epics.length === 0) {
+  if (teamMembers.length === 0) {
     return <div>Loading...</div>;
   }
 
