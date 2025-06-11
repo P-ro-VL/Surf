@@ -1,6 +1,6 @@
 import { Zap, Bookmark, Fingerprint, Bug } from "lucide-react";
 
-export const DEFAULT_URL = "http://api-jira.neureader.net/";
+export const DEFAULT_URL = "https://api-jira.neureader.net/";
 
 export const ticketStyles = {
   epic: {
