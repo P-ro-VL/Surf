@@ -102,7 +102,7 @@ export default function ReleaseDialog({ children, open, onOpenChange }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       {children}
-      <DialogContent className="sm:max-w-[50vw] p-8">
+      <DialogContent className="min-w-10/12 max-h-10/12 overflow-y-scroll p-8">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
             {release.name}
@@ -155,11 +155,7 @@ export default function ReleaseDialog({ children, open, onOpenChange }) {
                     className={`${
                       ticket.status === "DONE" || ticket.status === "OBSOLETE"
                         ? "bg-green-50 text-green-700"
-                        : [
-                            "IN_PROGRESS",
-                            "READY_FOR_TESTING",
-                            "IN_TESTING",
-                          ].includes(ticket.status)
+                        : ["TESTING", "IN_PROGRESS"].includes(ticket.status)
                         ? "bg-blue-50 text-blue-700"
                         : "bg-gray-50 text-gray-700"
                     }`}
@@ -267,7 +263,7 @@ export default function ReleaseDialog({ children, open, onOpenChange }) {
                       release.tickets.filter(
                         (ticket) =>
                           ticket.status === "IN_PROGRESS" ||
-                          ticket.status === "READY_FOR_TESTING" ||
+                          ticket.status === "TESTING" ||
                           ticket.status === "IN_TESTING"
                       ).length
                     }

@@ -149,7 +149,7 @@ const MobileToolbarContent = ({ type, onBack }) => (
   </>
 );
 
-export function SimpleEditor({ disabled = false, content }) {
+export function SimpleEditor({ disabled = false, content, onChange }) {
   const isMobile = useMobile();
   const windowSize = useWindowSize();
   const [mobileView, setMobileView] = React.useState("main");
@@ -190,6 +190,9 @@ export function SimpleEditor({ disabled = false, content }) {
       Link.configure({ openOnClick: false }),
     ],
     content: content,
+    onUpdate: ({ editor }) => {
+      onChange(editor.getHTML());
+    },
   });
 
   const bodyRect = useCursorVisibility({

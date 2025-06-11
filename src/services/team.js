@@ -1,8 +1,9 @@
 "use client";
 
+import { DEFAULT_URL } from "@/utils/constants";
 import { authService } from "./auth";
 
-const TEAM_API_URL = "http://localhost:8080/v1/team";
+const TEAM_API_URL = DEFAULT_URL + "v1/team";
 const TEAM_STORAGE_KEY = "team_data";
 
 export const teamService = {

@@ -1,6 +1,8 @@
 "use client";
 
-const AUTH_API_URL = "http://localhost:8080/v1/user";
+import { DEFAULT_URL } from "@/utils/constants";
+
+const AUTH_API_URL = DEFAULT_URL + "v1/user";
 const AUTH_STORAGE_KEY = "auth_data";
 
 export const authService = {
@@ -72,5 +74,7 @@ export const authService = {
 
   logout() {
     localStorage.removeItem(AUTH_STORAGE_KEY);
+    localStorage.removeItem("team_data");
+    localStorage.removeItem("ticket_data");
   },
 };

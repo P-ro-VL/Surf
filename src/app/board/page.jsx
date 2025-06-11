@@ -1,24 +1,19 @@
 "use client";
 
+import { AuthGuard } from "@/components/auth-guard";
 import { useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { authService } from "@/services/auth";
-import { teamService } from "@/services/team";
 
-export function AuthGuard({ children }) {
-  const navigate = useRouter();
-  const location = usePathname();
-
+export default function Page() {
   useEffect(() => {
     const isAuthenticated = authService.isAuthenticated();
 
     if (!isAuthenticated) {
       navigate.push("/login");
-    } else if (location.pathname === "/login") {
+    } else {
       const teams = teamService.getTeamData();
       navigate.push(`/board/${teams[0].teamName}`);
     }
   }, [location.pathname, navigate]);
 
-  return children;
+  return <AuthGuard></AuthGuard>;
 }

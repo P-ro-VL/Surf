@@ -1,6 +1,8 @@
 import { AuthGuard } from "@/components/auth-guard";
+import CreateTicketDialog from "@/components/kanban/create-ticket-dialog";
 import { KanbanBoard } from "@/components/kanban/KanbanBoard";
-import StackedAvatars from "@/components/ui/stacked_avatar";
+import { Button } from "@/components/ui/button";
+import { TicketPlus } from "lucide-react";
 
 export const iframeHeight = "800px";
 
@@ -20,7 +22,15 @@ export default async function Page({ params }) {
   return (
     <AuthGuard>
       <div className="p-4 flex flex-col gap-3">
-        <h1 className="text-2xl font-bold capitalize">{team} Kanban Board</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold capitalize">{team} Kanban Board</h1>
+          <CreateTicketDialog teamName={team}>
+            <Button className="cursor-pointer">
+              <TicketPlus className="w-4 h-4" /> Tạo ticket
+            </Button>
+          </CreateTicketDialog>
+        </div>
+
         <KanbanBoard teamName={team} />
       </div>
     </AuthGuard>

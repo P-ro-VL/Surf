@@ -46,6 +46,7 @@ export function _RemoveSign4VietnameseString(str) {
 }
 
 export function textToColor(s) {
+  if (!s) return "272727";
   var standardizedStr = _RemoveSign4VietnameseString(s);
   var sum = 0;
   for (var i = 0; i < standardizedStr.length; i++) {

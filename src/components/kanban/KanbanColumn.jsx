@@ -1,4 +1,3 @@
-import { KanbanCard } from "./KanbanCard";
 import {
   Card,
   CardHeader,
@@ -11,6 +10,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
+import { KanbanCard } from "./KanbanCard";
 
 export function KanbanColumn({ title, tasks, columnId, description }) {
   const { setNodeRef: columnDroppableRef, isOver } = useDroppable({
@@ -46,13 +46,9 @@ export function KanbanColumn({ title, tasks, columnId, description }) {
             items={taskIds}
             strategy={verticalListSortingStrategy}
           >
-            {tasks.map((task) => (
-              <KanbanCard
-                key={task.uuid}
-                task={task}
-                isDraggable={true} // Tất cả các card đều có thể kéo
-              />
-            ))}
+            {tasks.map((task) => {
+              return <KanbanCard key={task.uuid} task={task} />;
+            })}
           </SortableContext>
         </CardContent>
       </Card>

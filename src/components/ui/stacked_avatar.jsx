@@ -6,13 +6,23 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-export default function StackedAvatars({ avatars, size = 40, className }) {
-  const [selectedAvatar, setSelectedAvatar] = useState(null);
-  const [members, setMembers] = useState(null);
+export default function StackedAvatars({
+  avatars,
+  size = 40,
+  defaultValue,
+  className,
+  onChange,
+}) {
+  const [selectedAvatar, setSelectedAvatar] = useState(
+    defaultValue
+      ? avatars.indexOf(avatars.find((avatar) => avatar.id === defaultValue))
+      : null
+  );
 
   const handleAvatarClick = (idx, e) => {
     e.preventDefault();
     setSelectedAvatar(selectedAvatar === idx ? null : idx);
+    onChange(selectedAvatar === idx ? null : avatars[idx]);
   };
 
   return (
@@ -38,12 +48,6 @@ export default function StackedAvatars({ avatars, size = 40, className }) {
                   style={{ width: `${size}px`, height: `${size}px` }}
                   className="rounded-full border-2 border-white overflow-hidden"
                 >
-                  {avatar.src && (
-                    <AvatarImage
-                      src={avatar.src}
-                      alt={avatar.name || "avatar"}
-                    />
-                  )}
                   <AvatarFallback className="bg-blue-500 text-white font-bold">
                     {avatar.name?.[0]?.toUpperCase() || "?"}
                   </AvatarFallback>

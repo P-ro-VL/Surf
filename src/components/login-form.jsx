@@ -31,11 +31,11 @@ export function LoginForm({ className, ...props }) {
       const teams = teamService.getTeamData();
 
       const teamMemberData = {};
-      for (var team in teams) {
+      teams.forEach(async (team) => {
         const members = await authService.getAllTeamMembers(team.id);
 
         teamMemberData[team.name] = members;
-      }
+      });
       localStorage.setItem("team_member_data", teamMemberData);
 
       navigate.push(`/board/${teams[0].teamName}`);
@@ -61,13 +61,7 @@ export function LoginForm({ className, ...props }) {
       <div className="grid gap-6">
         <div className="grid gap-3">
           <Label htmlFor="id">Mã nhân sự</Label>
-          <Input
-            id="id"
-            name="id"
-            type="text"
-            placeholder="11223735"
-            required
-          />
+          <Input id="id" name="id" type="text" required />
         </div>
         <div className="grid gap-3">
           <Label htmlFor="password">Mật khẩu</Label>

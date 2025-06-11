@@ -5,12 +5,13 @@ import { ArrowUpRight, Terminal, Video } from "lucide-react";
 import { Button } from "./ui/button";
 import Link from "next/link";
 
-const meeting = {
-  name: "Backoffice Planning Sprint 7",
-  time: "10:00",
-  date: "2025-06-04",
-  link: "https://meet.google.com/abc-def-ghi",
-};
+// const meeting = {
+//   name: "Backoffice Planning Sprint 7",
+//   time: "10:00",
+//   date: "2025-06-04",
+//   link: "https://meet.google.com/abc-def-ghi",
+// };
+const meeting = undefined;
 
 export function SiteHeader() {
   return (
